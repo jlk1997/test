@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>飞机大战</title>
+		<script src="engineer.js"></script>  <!--用一个js专门调整数值-->
+		<style type="text/css">
+			.container{
+				width: 480px;
+				margin: auto;
+				position: relative;
+				overflow: hidden;
+				overflow-y: hidden;
+			}
+			
+			#myplane{
+				position: absolute;
+				/*只需要控制飞机等bottom与left就可以让飞机在界面中自由的移动*/
+				width: 80px;
+			}
+			.enemy{
+				position: absolute;
+				width: 90px;
+				z-index: 1;
+			}
+			#score{
+				text-align: center;
+				position: absolute;
+				background-color: #333333;
+				width: 80px;
+				height: 50px;
+				line-height: 50px;
+				right: 10px;
+				top:10px;
+				font-size: 20px;
+				color: white;
+			}
+		</style>
+		
+		<script type="text/javascript">
+			function keydownevent(e){
+				var ev = e || event; //event 是浏览器默认传入的参数
+//				var planebo = $("myplane").style.bottom;//bottom用于控制上下移动
+//				var planebo = getY(myid);//myid是封装之后的id="myplane"
+//				var planeleft = $("myplane").style.left;//left用于控制左右移动
+//				var planeleft = getX(myid);
+//				planeleft = planeleft.replace("px","")-0;//将left值先转化为数字进行计算
+//				planebo = planebo.replace("px","")-0;//先将bottom单位去除再用-0转化为数字进行计算
+				if(ev.keyCode == Constance.UPVALUE){  //向上
+//					planebo += Constance.STEP;
+//					if(planebo > Constance.MAX_UP){
+//						return;//如果planebottom值大于720，后面语句不执行
+//					}
+////					$("myplane").style.bottom = planebo+"px";
+//					setY(myid,planebo);   //js在传参数时id必须带双引号
+					goingup = true;
+					
+				}
+				if(ev.keyCode == Constance.DOWNVALUE){ //向下
+//					planebo -= Constance.STEP;
+//					if(planebo < Constance.MAX_DOWN){
+//						return;//如果planebottom值大于720，后面语句不执行
+//					}
+////					$("myplane").style.bottom = planebo+"px";
+//					setY(myid,planebo);
+					goingdown = true;
+				}
+				if(ev.keyCode == Constance.RIGHTVALUE){  //向右
+//					planeleft += Constance.STEP;
+//					if(planeleft > Constance.MAX_RIGHT){
+//						return;
+//					}
+////					$("myplane").style.left = planeleft+"px";
+//					setX(myid,planeleft);
+					goingright = true;
+				}
+				if(ev.keyCode == Constance.LEFTVALUE){ //向左
+//					planeleft -= Constance.STEP;
+//					if(planeleft < Constance.MAX_LEFT){
+//						return;
+//					}
+////					$("myplane").style.left = planeleft+"px";
+//					setX(myid,planeleft);
+					goingleft = true;
+				}
+			}
+			
+			var gameinterval = setInterval(function(){
+				//1获取到myplane的style的bottom值，再进行赋值
+				var planebo = getY($(myid));//获取到对象并转化为可计算的number类型
+				var planeleft = getX($(myid));
+				if(goingup){
+					planebo += Constance.STEP;
+					if(planebo > Constance.MAX_UP){
+						return;
+					}
+//					setY(myid,planebo);//改变原有style.bottom
+					setY($(myid),planebo);
+				}
+				if(goingdown){
+					planebo -= Constance.STEP;
+					if(planebo < Constance.MAX_DOWN){
+						return;
+					}
+//					setY(myid,planebo);
+					setY($(myid),planebo);
+				}
+				if(goingleft){
+					planeleft -= Constance.STEP;
+					if(planeleft < Constance.MAX_LEFT){
+						return;
+					}
+//					setX(myid,planeleft);
+					setX($(myid),planeleft);
+				}
+				if(goingright){
+					planeleft += Constance.STEP;
+					if(planeleft > Constance.MAX_RIGHT){
+						return;
+					}
+//					setX(myid,planeleft);
+					setX($(myid),planeleft);
+				}
+				//扫描全局子弹，然后增加bottom
+				var bullets = document.getElementsByClassName("bullet");//将getelementsbyname理解为取到name为bullet的一个数组，并对其进行遍历
+				if(bullets){
+					for(var i = 0;i < bullets.length;i++){
+						var y = getY(bullets[i]) + Constance.BULLET_STEP;
+						if(y > Constance.SCREEM_HEIGHT){				//发射的子弹如果bottom高度大于屏幕高度，进入循环销毁，销毁完后continue进入sety方法进行发射
+							$("container").removeChild(bullets[i]);
+							continue;
+						}
+						setY(bullets[i],y);
+						//判断子弹击中敌机：两个坐标的差绝对值在敌机的宽高值之间。每一个子弹都要检测有没有发生碰撞
+						//扫描所有的子弹是否与敌机发生碰撞，遍历所有的敌机
+						var enemies = document.getElementsByClassName("enemy");
+						for(var j = 0;j<enemies.length;j++){
+							var enemyx = getX(enemies[j]);
+							var enemyy = getY(enemies[j]);
+							var bulletx = getX(bullets[i]);
+							var bullety = getY(bullets[i]);
+							
+							if(Math.abs(enemyx - bulletx) < Constance.ENEMY_WIDTH && Math.abs(enemyy - bullety)<Constance.ENEMY_HEIGHT){
+								enemies[j].src = "img/20190310203423315.png";					
+//								setTimeout(function(){
+//									$("container").removeChild(enemies[j]);
+//								},1000);			//1秒后settimeout函数已经找不到要删除到对象了，因为遍历到太快了
+								var scorecurrent = $("score").innerHTML - 0;
+								scorecurrent += 10;
+								Constance.ENEMIES_STEP += Math.floor(scorecurrent / 5000);
+								Constance.ENEMY_APPEAR -= Math.floor(scorecurrent / 500);
+								if(	Constance.ENEMY_APPEAR < 50){
+										Constance.ENEMY_APPEAR = 50;
+								}
+								$("score").innerHTML = scorecurrent;
+								
+							}
+							//检测敌机是否与英雄机发生碰撞
+							var x3 = getX($(myid));
+							var y3 = getY($(myid));
+							if(Math.abs(enemyx - x3) < Constance.ENEMY_WIDTH && Math.abs(enemyy - y3)<Constance.ENEMY_HEIGHT){
+//								alert("撞击了");
+								$(myid).style.src = "img/20190310203423315.png";
+								var score = $("score").innerHTML;
+								$("container").innerHTML = "<p>你已经阵亡，即将重新开始</p>";
+								$("container").innerHTML += "<p>您本次的分数为"+score+"</p>";
+								setTimeout(function(){location.reload();},2000)
+							}
+						}
+					}
+				}
+				timer += 0.1;
+			},40);
+			
+			setInterval(function(){
+				var enemies = document.getElementsByClassName("enemy");
+				for(var i = 0;i<enemies.length;i++){
+					var enemymove = getY(enemies[i]) - Constance.ENEMIES_STEP;
+					setY(enemies[i],enemymove);
+					if(enemymove < 0 - Constance.ENEMY_HEIGHT){
+						$("container").removeChild(enemies[i]);
+					}
+					
+						var roll = enemies[i].attributes.roll.value;
+						if(roll == 1 ){
+						var x = getX(enemies[i]);
+						x = x+15*Math.sin(timer);
+						setX(enemies[i],x);
+					}
+				}
+				
+			},40);
+			
+			setInterval(function(){			//设置定时器消除爆炸图片
+				var enemies = document.getElementsByClassName("enemy");
+				for(var i = 0;i<enemies.length;i++){
+					if(enemies[i].src.indexOf("img/20190310203423315.png")!= -1 ){
+						$("container").removeChild(enemies[i]);
+					}
+				}
+			},500);
+			//设置定时器，动态绘制子弹出生图片位置
+			setInterval(function(){
+				var bulletX = getX($(myid)) + Constance.PLANE_WIDEH * 0.5 ;		//我们取得是myplane id，myplane在移动中bottom与left都在同时发送改变，所以子弹是跟着myplane出现的
+				var bulletY = getY($(myid)) + Constance.PLANE_HEIGHT;
+				$("container").innerHTML += "<img class='bullet' style=\"position: absolute;width: 26px;bottom: "+bulletY+"px;left:"+bulletX+"px\" src=\"img/便便.png\"/>";
+			
+			},200);
+			//然后在定时器中设置，扫描子弹
+			
+			//利用onkeydown事件监听摁键，再串联定时器进行上下左右的移动。原理是先获取style.bottom，将bottom转化为可计算的数值后根据移动方向进行计算，计算完毕后重新赋值给该id的style.bottom属性
+			//利用onkeyup来让前进暂停。都是通过四个方向设置的布尔属性进行移动的是否控制
+			//可以通知触发多条if命令
+			function keyupevent(e){
+				var ev = e || event; 
+				var planebo = getY($(myid));
+				var planeleft = getX($(myid));
+				if(ev.keyCode == Constance.UPVALUE){
+					goingup = false;
+				}
+				if(ev.keyCode == Constance.DOWNVALUE){
+					goingdown = false;
+				}
+				if(ev.keyCode == Constance.RIGHTVALUE){
+					goingright = false;
+				}
+				if(ev.keyCode == Constance.LEFTVALUE){
+					goingleft = false;
+				}
+			}
+			setInterval(function(){
+				//设置敌机x轴出生位置
+				var x =  Math.floor(Math.random()*300);
+				var roll = 0;
+				if(Math.sin(x) > 0){
+					roll = 1;
+				}
+				$("container").innerHTML += "<img roll='"+roll+"' class=\"enemy\" style=\"left: "+x+"px;bottom: 800px;\" src=\"img/20190310203343399.png\"/>";
+			},Constance.ENEMY_APPEAR);
+		</script>
+	</head>
+	<body onkeydown="keydownevent()" onkeyup="keyupevent()">  <!--浏览器自动给keydownevent传入一个值-->
+		<div class="container" id="container">
+			<div id="score">
+				0
+			</div>
+			<!--敌机-->
+			<img class="enemy" style="left: 140px;bottom: 800px;" src="img/20190310203343399.png"/>
+			
+			<img style="width: 480px;z-index: 0;" src="img/20190310203441206.png"/>  <!--背景图片-->
+			<div id="myplane" style="bottom: 20px;left: 210px;">
+				<img style="z-index: 2;" src="img/20190310203706565.png"/>  <!--飞机图片-->
+				
+			</div>
+	</body>
+</html>
